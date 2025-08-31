@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Farmer Registration</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="navbar">
+    <h1>Smart Crop Advisory</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="register.html" class="active">Register</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="advisory.html">Advisory</a>
+    </nav>
+  </header>
+
+  <main class="form-page">
+    <div class="form-card">
+      <h2>Farmer Registration</h2>
+      <p class="subtitle">Join us to get personalized crop advice</p>
+      <form>
+        <label for="name">Name</label>
+        <input type="text" id="name" placeholder="Enter your name" required>
+        
+        <label for="phone">Phone</label>
+        <input type="tel" id="phone" placeholder="Enter phone number" required>
+        
+        <label for="region">Region</label>
+        <input type="text" id="region" placeholder="Enter your region" required>
+        
+        <label for="language">Preferred Language</label>
+        <select id="language" required>
+          <option value="" disabled selected>Select language</option>
+          <option>English</option>
+          <option>Bengali</option>
+          <option>Hindi</option>
+        </select>
+        
+        <button type="submit" class="btn">Register</button>
+      </form>
+    </div>
+  </main>
+
+  <footer>
+    <p>© 2025 Smart Crop Advisory</p>
+  </footer>
+</body>
+</html>
