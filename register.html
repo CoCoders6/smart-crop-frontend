@@ -1,46 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Farmer Registration</title>
-  <link rel="stylesheet" href="css/style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Register - Smart Crop</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script defer src="js/app.js"></script>
 </head>
 <body>
-  <header class="navbar">
-    <h1>Smart Crop Advisory</h1>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="register.html" class="active">Register</a>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="advisory.html">Advisory</a>
-    </nav>
-  </header>
+<header class="navbar">
+  <h1>Smart Crop Advisory</h1>
+  <nav id="navbar"></nav> <!-- JS will inject links -->
+</header>
 
   <main class="form-page">
     <div class="form-card">
       <h2>Farmer Registration</h2>
       <p class="subtitle">Join us to get personalized crop advice</p>
-      <form>
+
+      <form id="registerForm">
         <label for="name">Name</label>
-        <input type="text" id="name" placeholder="Enter your name" required>
-        
+        <input id="name" type="text" required />
+
         <label for="phone">Phone</label>
-        <input type="tel" id="phone" placeholder="Enter phone number" required>
-        
-        <label for="region">Region</label>
-        <input type="text" id="region" placeholder="Enter your region" required>
-        
-        <label for="language">Preferred Language</label>
-        <select id="language" required>
-          <option value="" disabled selected>Select language</option>
-          <option>English</option>
-          <option>Bengali</option>
-          <option>Hindi</option>
-        </select>
-        
+        <input id="phone" type="tel" placeholder="+91xxxxxxxxxx" />
+
+        <label for="email">Email</label>
+        <input id="email" type="email" required />
+
+        <label for="password">Password</label>
+        <input id="password" type="password" required />
+
         <button type="submit" class="btn">Register</button>
+        <p style="margin-top:12px; font-size:0.95rem;">Already have an account? <a href="login.html">Login</a></p>
+        <div id="registerMsg" style="margin-top:10px;"></div>
       </form>
     </div>
   </main>
