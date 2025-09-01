@@ -1,41 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard - Smart Crop</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script defer src="js/app.js"></script>
 </head>
 <body>
   <header class="navbar">
-    <h1>Smart Crop Advisory</h1>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="register.html">Register</a>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="advisory.html">Advisory</a>
-    </nav>
-  </header>
+  <h1>Smart Crop Advisory</h1>
+  <nav id="navbar"></nav> <!-- JS will inject links -->
+</header>
 
-  <main class="dashboard">
-    <h2>Farmer Dashboard</h2>
-    <div class="grid">
-      <div class="card">
-        <h3>Weather</h3>
-        <p>Sunny, 30°C</p>
-      </div>
-      <div class="card">
-        <h3>Recommended Crops</h3>
-        <ul>
-          <li>Wheat</li>
-          <li>Rice</li>
-          <li>Mustard</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>Alerts</h3>
-        <p>No alerts currently</p>
-      </div>
+  <main class="dashboard container">
+    <h2>📊 Farmer Dashboard</h2>
+
+    <div style="display:flex; gap:12px; margin-bottom:14px; flex-wrap:wrap;">
+      <button class="btn" onclick="location.href='field.html'">+ Add Field</button>
+      <button class="btn" onclick="logoutUser()">Logout</button>
+    </div>
+
+    <div id="fieldsGrid" class="grid">
+      <!-- JS inserts field cards here -->
+      <p id="loadingFields">Loading your fields…</p>
     </div>
   </main>
 
