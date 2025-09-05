@@ -12,22 +12,17 @@
 <body>
   <script>
     fetch("https://smart-crop-backend.onrender.com/configChatbase")
-      .then(res => res.json())
-      .then(data => {
-        const chatbaseId = data.id;
+  .then(res => res.json())
+  .then(data => {
+    const chatbaseId = data.id;
+    const script = document.createElement("script");
+    script.src = "https://www.chatbase.co/embed.min.js";
+    script.id = chatbaseId;
+    script.defer = true;
+    document.body.appendChild(script);
+  })
+  .catch(err => console.error("Chatbase load error:", err));
 
-        (function () {
-          const onLoad = function () {
-            const script = document.createElement("script");
-            script.src = "https://www.chatbase.co/embed.min.js";
-            script.id = chatbaseId;
-            script.domain = "www.chatbase.co";
-            document.body.appendChild(script);
-          };
-          if (document.readyState === "complete") { onLoad(); }
-          else { window.addEventListener("load", onLoad); }
-        })();
-      });
   </script>
 
 
