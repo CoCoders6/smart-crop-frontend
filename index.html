@@ -1,26 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Smart Crop Advisory</title>
-  <link rel="stylesheet" href="css/style.css" />
-</head>
-<body>
-  <header class="navbar">
-  <h1>Smart Crop Advisory</h1>
-  <nav id="navbar"></nav> <!-- JS will inject links -->
-</header>
 
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Crop Advisory</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <!-- Hero Section -->
   <header class="hero">
     <img src="images/farm.jpg" alt="Farm Image">
     <div class="hero-content">
       <h1>Welcome to Smart Crop Advisory</h1>
       <p>Helping small and marginal farmers grow smarter</p>
-      <a href="register.html" class="btn">Get Started</a>
+      <button class="btn" id="getStartedBtn">Get Started</button>
     </div>
   </header>
 
+  <!-- Features Section -->
   <section class="features">
     <h2>Our Services</h2>
     <div class="feature-cards">
@@ -46,5 +45,19 @@
   <footer>
     <p>© 2025 Smart Crop Advisory</p>
   </footer>
+
+  <script>
+    document.getElementById("getStartedBtn").addEventListener("click", () => {
+      const token = localStorage.getItem("token"); // JWT saved at login
+      if (token) {
+        // already logged in → go to dashboard
+        window.location.href = "dashboard.html";
+      } else {
+        // not logged in → go to register/login
+        window.location.href = "register.html";
+      }
+    });
+  </script>
 </body>
+
 </html>

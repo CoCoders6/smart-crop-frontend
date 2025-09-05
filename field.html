@@ -14,27 +14,30 @@
 </header>
 
   <main class="form-page">
-    <div class="form-card">
-      <h2>Add New Field</h2>
+  <div class="form-card">
+    <h2>Add New Field</h2>
 
-      <form id="fieldForm">
-        <label for="fieldName">Field Name</label>
-        <input id="fieldName" type="text" required />
+    <form id="fieldForm">
+      <label for="fieldName">Field Name</label>
+      <input id="fieldName" type="text" required />
 
-        <label for="location">Location (city/district)</label>
-        <input id="location" type="text" required />
+      <label for="location">Location (city/district)</label>
+      <input id="location" type="text" required />
 
-        <label for="soilPh">Soil pH</label>
-        <input id="soilPh" type="number" step="0.1" required />
+      <label for="soilPh">Soil pH</label>
+      <input id="soilPh" type="number" placeholder="Default: 7.0" step="0.1"/>
 
-        <label for="crop">Crop (optional)</label>
-        <input id="crop" type="text" placeholder="e.g. Rice" />
+      <label for="N">N (Nitrogen)</label>
+      <input id="N" type="number" placeholder="Default: 120" step="1"/>
 
-        <button type="submit" class="btn">Save Field</button>
-        <div id="fieldMsg" style="margin-top:10px;"></div>
-      </form>
-    </div>
-  </main>
+      <label for="crop">Crop (optional)</label>
+      <input id="crop" type="text" placeholder="e.g. Rice" />
+
+      <button type="submit" class="btn">Save Field</button>
+      <div id="fieldMsg"></div>
+    </form>
+  </div>
+</main>
 
   <footer>
     <p>© 2025 Smart Crop Advisory</p>

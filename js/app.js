@@ -1,5 +1,5 @@
-// js/app.js - frontend logic for Smart Crop
-const API_BASE = "http://localhost:5000/api";
+// js/app.js - Smart Crop Frontend
+const API_BASE = "https://smart-crop-backend.onrender.com/api";
 
 // ---------- Helpers ----------
 function getToken() {
@@ -75,22 +75,28 @@ async function loginUser(e) {
 
 function logoutUser() {
   clearToken();
-  window.location.href = "login.html";
+  window.location.href = "index.html";
 }
 
 // ---------- FIELDS / DASHBOARD ----------
 async function createField(e) {
   e.preventDefault();
+
   const name = document.getElementById("fieldName").value.trim();
   const location = document.getElementById("location").value.trim();
-  const soilPh = parseFloat(document.getElementById("soilPh").value);
   const crop = document.getElementById("crop").value.trim();
+
+  let soilPh = parseFloat(document.getElementById("soilPh").value);
+  if (isNaN(soilPh)) soilPh = 7.0;
+
+  let N = parseFloat(document.getElementById("N").value);
+  if (isNaN(N)) N = 120;
 
   try {
     const res = await fetch(`${API_BASE}/fields`, {
       method: "POST",
       headers: { "Content-Type": "application/json", ...authHeaders() },
-      body: JSON.stringify({ name, location, soilPh, crop }),
+      body: JSON.stringify({ name, location, crop, soilPh, N }),
     });
     const data = await res.json();
     if (res.ok && data.success) {
@@ -105,43 +111,98 @@ async function createField(e) {
   }
 }
 
-async function loadDashboard() {
-  const container = document.getElementById("fieldsGrid");
-  if (!container) return;
-  container.innerHTML = "<p>Loading your fields…</p>";
-
+// ---------- WEATHER ----------
+async function loadWeather(fieldId, location) {
   try {
-    const res = await fetch(`${API_BASE}/fields`, {
+    const res = await fetch(`${API_BASE}/weather?location=${encodeURIComponent(location)}`, {
       headers: { ...authHeaders() },
     });
+    const data = await res.json();
+    if (res.ok && data.forecast) {
+      const tempEl = document.getElementById(`temp-${fieldId}`);
+      const humEl = document.getElementById(`humidity-${fieldId}`);
+      if (tempEl) tempEl.textContent = data.forecast.temperature.toFixed(1);
+      if (humEl) humEl.textContent = data.forecast.humidity.toFixed(0);
+    }
+  } catch (err) {
+    console.error("Weather fetch error:", err);
+  }
+}
+let deleteMode = false;
+
+// ---------- LOAD CARDS (DASHBOARD OR ADVISORY) ----------
+async function loadCards(containerId, showButtons = true) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = "<p>Loading…</p>";
+
+  try {
+    const res = await fetch(`${API_BASE}/fields`, { headers: { ...authHeaders() } });
     const data = await res.json();
     if (!res.ok) {
       container.innerHTML = `<p style="color:crimson;">${data.error || "Failed to load"}</p>`;
       return;
     }
+
     const fields = data.fields || [];
-    if (fields.length === 0) {
-      container.innerHTML = `<p>You have no fields yet. Add one → <a href="field.html">Add Field</a></p>`;
+    if (!fields.length) {
+      container.innerHTML = `<p>No fields found. Add one → <a href="field.html">Add Field</a></p>`;
       return;
     }
 
     container.innerHTML = "";
-    fields.forEach((f) => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <h3>${escapeHtml(f.name)} <small style="font-weight:400">(${escapeHtml(f.crop || "—")})</small></h3>
-        <p>📍 ${escapeHtml(f.location || "—")}</p>
-        <p>Soil pH: ${f.soilPh ?? "N/A"}</p>
-        <div style="display:flex;gap:8px;margin-top:8px;">
-          <button class="btn" onclick="requestAdvisory('${f._id}')">Get Advisory</button>
-          <button class="btn" onclick="requestRecommendation('${f._id}')">Get Recommendation</button>
-          <button class="btn" onclick="sendAdvisorySMS('${f._id}')">Send SMS</button>
-        </div>
-        <div id="result-${f._id}" style="margin-top:10px;"></div>
+    fields.forEach(f => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.style.position = "relative";
+
+  if (deleteMode) {
+    // Delete mode: only name + delete button
+    card.innerHTML = `
+      <h3>${escapeHtml(f.name)}</h3>
+      <button class="btnfield" id="deletered"; onclick="deleteField('${f._id}')">🗑 Delete</button>
+    `;
+  } else {
+    // Normal mode (existing code)
+    const weatherDiv = document.createElement("div");
+    weatherDiv.style.position = "absolute";
+    weatherDiv.style.top = "10px";
+    weatherDiv.style.right = "10px";
+    weatherDiv.style.textAlign = "right";
+    weatherDiv.innerHTML = `🌡️ <span id="temp-${f._id}">--</span> °C<br>💧 <span id="humidity-${f._id}">--</span> %`;
+    card.appendChild(weatherDiv);
+
+    const contentDiv = document.createElement("div");
+    contentDiv.innerHTML = `
+      <h3>${escapeHtml(f.name)} <small style="font-weight:400">(${escapeHtml(f.crop || "—")})</small></h3>
+      <p>📍 ${escapeHtml(f.location || "—")}</p>
+      <p>🌱 Soil pH: ${f.soilPh ?? "N/A"}, 🟦 N: ${f.N ?? 120}</p>
+    `;
+
+    if (showButtons) {
+      const btnDiv = document.createElement("div");
+      btnDiv.innerHTML = `
+        <button class="btnfield" onclick="requestAdvisory('${f._id}')">Get Advisory</button>
+        <button class="btnfield" onclick="requestRecommendation('${f._id}')">Get Recommendation</button>
+        <button class="btnfield" onclick="sendAdvisorySMS('${f._id}')">Send SMS</button>
       `;
-      container.appendChild(card);
-    });
+      contentDiv.appendChild(btnDiv);
+    }
+
+    const resultDiv = document.createElement("div");
+    resultDiv.id = `result-${f._id}`;
+    resultDiv.style.marginTop = "10px";
+    contentDiv.appendChild(resultDiv);
+
+    card.appendChild(contentDiv);
+    container.appendChild(card);
+
+    loadWeather(f._id, f.location);
+  }
+
+  container.appendChild(card);
+});
+
   } catch (err) {
     console.error(err);
     container.innerHTML = "<p style='color:crimson'>Server error</p>";
@@ -157,31 +218,32 @@ async function requestAdvisory(fieldId) {
     });
     const data = await res.json();
     const target = document.getElementById(`result-${fieldId}`);
-    if (res.ok && data.success) {
-      target.innerText = `Advisory: ${data.advice.join(", ")}`;
-    } else {
-      target.innerText = `Advisory error: ${data.error || "failed"}`;
-    }
-  } catch (err) {
-    console.error(err);
-  }
+    target.innerText = (res.ok && data.success)
+      ? `Advisory: ${data.advice.join(", ")}`
+      : `Advisory error: ${data.error || "failed"}`;
+  } catch (err) { console.error(err); }
 }
 
 async function requestRecommendation(fieldId) {
   try {
-    const res = await fetch(`${API_BASE}/recommendation/${fieldId}`, {
+    const soilPhEl = document.getElementById("soilPh");
+    const NEl = document.getElementById("N");
+    const soilPh = soilPhEl ? parseFloat(soilPhEl.value) : undefined;
+    const N = NEl ? parseFloat(NEl.value) : undefined;
+
+    const params = new URLSearchParams();
+    if (soilPh !== undefined) params.append("soilPh", soilPh);
+    if (N !== undefined) params.append("N", N);
+
+    const res = await fetch(`${API_BASE}/recommendation/${fieldId}?${params.toString()}`, {
       headers: { ...authHeaders() },
     });
     const data = await res.json();
     const target = document.getElementById(`result-${fieldId}`);
-    if (res.ok && data.success) {
-      target.innerText = `Recommendation: ${data.recommendation}`;
-    } else {
-      target.innerText = `Recommendation error: ${data.error || "failed"}`;
-    }
-  } catch (err) {
-    console.error(err);
-  }
+    target.innerText = (res.ok && data.success)
+      ? `Recommendation: ${data.recommendation}`
+      : `Recommendation error: ${data.error || "failed"}`;
+  } catch (err) { console.error(err); }
 }
 
 async function sendAdvisorySMS(fieldId) {
@@ -192,115 +254,157 @@ async function sendAdvisorySMS(fieldId) {
     });
     const data = await res.json();
     const target = document.getElementById(`result-${fieldId}`);
+    target.innerText = (res.ok && data.success)
+      ? `SMS: ${data.message || "sent"} — ${data.advisory?.join(", ") || ""}`
+      : `SMS error: ${data.error || "failed"}`;
+  } catch (err) { console.error(err); }
+}
+
+
+const toggleDeleteBtn = document.getElementById("toggleDeleteBtn");
+if (toggleDeleteBtn) {
+  toggleDeleteBtn.addEventListener("click", () => {
+    deleteMode = !deleteMode;
+    toggleDeleteBtn.textContent = deleteMode ? "Exit Delete Mode" : "Delete Mode";
+    loadCards("fieldsGrid", true); // reload cards in new mode
+  });
+}
+
+
+async function deleteField(fieldId) {
+  if (!confirm("Are you sure you want to delete this field?")) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/fields/${fieldId}`, {
+      method: "DELETE",
+      headers: { ...authHeaders() },
+    });
+    const data = await res.json();
     if (res.ok && data.success) {
-      target.innerText = `SMS: ${data.message || "sent (fallback)"} — ${data.advisory?.join(", ") || ""}`;
+      alert("Field deleted.");
+      loadCards("fieldsGrid", true); // refresh dashboard
     } else {
-      target.innerText = `SMS error: ${data.error || "failed"}`;
+      alert(data.error || "Delete failed");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Server error");
+  }
+}
+
+
+// ---------- Utilities ----------
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// ---------- Navbar ----------
+function renderNavbar() {
+  const navbar = document.getElementById("navbar");
+  if (!navbar) return;
+  const token = getToken();
+  navbar.innerHTML = token
+    ? `<a href="index.html">Home</a>
+       <a href="dashboard.html">Dashboard</a>
+       <a href="advisory.html">Advisory</a>
+       <a href="#" onclick="logoutUser()">Logout</a>`
+    : `<a href="index.html">Home</a>
+       <a href="register.html">Register</a>
+       <a href="login.html">Login</a>`;
+}
+
+// ---------- DOM Ready ----------
+document.addEventListener("DOMContentLoaded", () => {
+  renderNavbar();
+
+  const registerForm = document.getElementById("registerForm");
+  if (registerForm) registerForm.addEventListener("submit", registerUser);
+
+  const loginForm = document.getElementById("loginForm");
+  if (loginForm) loginForm.addEventListener("submit", loginUser);
+
+  const fieldForm = document.getElementById("fieldForm");
+  if (fieldForm) fieldForm.addEventListener("submit", createField);
+
+  // Dashboard cards with buttons
+  if (document.getElementById("fieldsGrid")) loadCards("fieldsGrid", true);
+
+  // Advisory page: cards without buttons
+  if (document.getElementById("advisoryList")) loadCards("advisoryList", false);
+});
+
+
+
+// Advisory page: load only name, crop, and advisory
+async function loadAdvisoryCards() {
+  const container = document.getElementById("advisoryList");
+  if (!container) return;
+  container.innerHTML = "<p>Loading advisory…</p>";
+
+  try {
+    const res = await fetch(`${API_BASE}/fields`, { headers: { ...authHeaders() } });
+    const data = await res.json();
+    if (!res.ok) {
+      container.innerHTML = `<p style="color:crimson;">${data.error || "Failed to load"}</p>`;
+      return;
+    }
+
+    const fields = data.fields || [];
+    if (!fields.length) {
+      container.innerHTML = `<p>No fields found. Add one → <a href="field.html">Add Field</a></p>`;
+      return;
+    }
+
+    container.innerHTML = "";
+
+    for (const f of fields) {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      // Field name and crop
+      const title = document.createElement("h3");
+      title.innerHTML = `${escapeHtml(f.name)} <small style="font-weight:400">(${escapeHtml(f.crop || "—")})</small>`;
+      card.appendChild(title);
+
+      // Advisory placeholder
+      const advisoryDiv = document.createElement("p");
+      advisoryDiv.id = `result-${f._id}`;
+      advisoryDiv.textContent = "Loading advisory…";
+      card.appendChild(advisoryDiv);
+
+      container.appendChild(card);
+
+      // Fetch advisory for this field
+      fetchAdvisoryForCard(f._id);
+    }
+
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = "<p style='color:crimson'>Server error</p>";
+  }
+}
+
+// Fetch advisory for advisory page only
+async function fetchAdvisoryForCard(fieldId) {
+  try {
+    const res = await fetch(`${API_BASE}/advisory/${fieldId}`, {
+      method: "POST",
+      headers: { ...authHeaders(), "Content-Type": "application/json" },
+    });
+    const data = await res.json();
+    const target = document.getElementById(`result-${fieldId}`);
+    if (target) {
+      target.textContent = (res.ok && data.success)
+        ? `Advisory: ${data.advice.join(", ")}`
+        : `No advisory available`;
     }
   } catch (err) {
     console.error(err);
   }
 }
 
-// ---------- small util ----------
-function escapeHtml(str) {
-  if (!str) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
-// ---------- Bind events ----------
+// Run on advisory.html only
 document.addEventListener("DOMContentLoaded", () => {
-  // register form
-  const registerForm = document.getElementById("registerForm");
-  if (registerForm) registerForm.addEventListener("submit", registerUser);
-
-  // login form
-  const loginForm = document.getElementById("loginForm");
-  if (loginForm) loginForm.addEventListener("submit", loginUser);
-
-  // field form
-  const fieldForm = document.getElementById("fieldForm");
-  if (fieldForm) fieldForm.addEventListener("submit", createField);
-
-  // dashboard load
-  if (document.querySelector(".dashboard")) {
-    loadDashboard();
-  }
-
-  // advisory page: show last advisories (using fields and calling advisory for each)
-  if (document.querySelector(".advisory")) {
-    (async () => {
-      const list = document.getElementById("advisoryList");
-      list.innerHTML = "<p>Loading…</p>";
-      try {
-        const res = await fetch(`${API_BASE}/fields`, { headers: { ...authHeaders() } });
-        const data = await res.json();
-        if (!res.ok) {
-          list.innerHTML = `<p style="color:crimson">${data.error || "Failed"}</p>`;
-          return;
-        }
-        const fields = data.fields || [];
-        if (!fields.length) {
-          list.innerHTML = "<p>No fields found. Add a field in Dashboard.</p>";
-          return;
-        }
-        list.innerHTML = "";
-        for (const f of fields) {
-          const card = document.createElement("div");
-          card.className = "card";
-          card.innerHTML = `<h3>${escapeHtml(f.name)}</h3><p>Crop: ${escapeHtml(f.crop||"—")}</p><p>Soil pH: ${f.soilPh ?? "N/A"}</p><div id="adv-${f._id}">Loading advice…</div>`;
-          list.appendChild(card);
-          // fetch advisory for each field (best-effort)
-          try {
-            const r = await fetch(`${API_BASE}/advisory/${f._id}`, { method: "POST", headers:{...authHeaders(), "Content-Type":"application/json"} });
-            const advData = await r.json();
-            const container = document.getElementById(`adv-${f._id}`);
-            if (r.ok && advData.success) container.innerText = advData.advice.join(", ");
-            else container.innerText = advData.error || "No advice";
-          } catch (e) {
-            document.getElementById(`adv-${f._id}`).innerText = "Error fetching advice";
-          }
-        }
-      } catch (err) {
-        console.error(err);
-        list.innerHTML = "<p>Server error</p>";
-      }
-    })();
-  }
+  if (document.getElementById("advisoryList")) loadAdvisoryCards();
 });
-
-
-// ==================== NAVBAR ====================
-function renderNavbar() {
-  const navbar = document.getElementById("navbar");
-  if (!navbar) return;
-
-  const token = localStorage.getItem("token");
-
-  if (token) {
-    navbar.innerHTML = `
-      <a href="index.html">Home</a>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="advisory.html">Advisory</a>
-      <a href="#" onclick="logoutUser()">Logout</a>
-    `;
-  } else {
-    navbar.innerHTML = `
-      <a href="index.html">Home</a>
-      <a href="register.html">Register</a>
-      <a href="login.html">Login</a>
-    `;
-  }
-}
-
-function logoutUser() {
-  localStorage.removeItem("token");
-  alert("👋 Logged out successfully");
-  window.location.href = "index.html";
-}
-
-// Call when page loads
-document.addEventListener("DOMContentLoaded", renderNavbar);

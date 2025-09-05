@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -7,19 +8,42 @@
   <link rel="stylesheet" href="css/style.css" />
   <script defer src="js/app.js"></script>
 </head>
-<body>
-  <header class="navbar">
-  <h1>Smart Crop Advisory</h1>
-  <nav id="navbar"></nav> <!-- JS will inject links -->
-</header>
 
-  <main class="dashboard container">
+<body>
+  <script>
+    fetch("http://localhost:5000/configChatbase")
+      .then(res => res.json())
+      .then(data => {
+        const chatbaseId = data.id;
+
+        (function () {
+          const onLoad = function () {
+            const script = document.createElement("script");
+            script.src = "https://www.chatbase.co/embed.min.js";
+            script.id = chatbaseId;
+            script.domain = "www.chatbase.co";
+            document.body.appendChild(script);
+          };
+          if (document.readyState === "complete") { onLoad(); }
+          else { window.addEventListener("load", onLoad); }
+        })();
+      });
+  </script>
+
+
+  <header class="navbar">
+    <h1>Smart Crop Advisory</h1>
+    <nav id="navbar"></nav> <!-- JS will inject links -->
+  </header>
+
+  <main class="dashboard-container">
     <h2>📊 Farmer Dashboard</h2>
 
-    <div style="display:flex; gap:12px; margin-bottom:14px; flex-wrap:wrap;">
+    <div class="together" style="display:flex; gap:12px; margin-bottom:14px; flex-wrap:wrap;">
       <button class="btn" onclick="location.href='field.html'">+ Add Field</button>
-      <button class="btn" onclick="logoutUser()">Logout</button>
+      <button class="btn" id="toggleDeleteBtn">Delete Mode</button>
     </div>
+
 
     <div id="fieldsGrid" class="grid">
       <!-- JS inserts field cards here -->
@@ -31,4 +55,5 @@
     <p>© 2025 Smart Crop Advisory</p>
   </footer>
 </body>
+
 </html>

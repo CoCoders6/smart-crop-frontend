@@ -21,8 +21,10 @@
 .hero::after {
   content: "";
   position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: rgba(0, 0, 0, 0.4);
 }
 
@@ -41,7 +43,20 @@
   margin-bottom: 2rem;
 }
 
+@media(max-width:768px) {
+  .hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .hero p {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+  }
+}
+
 .btn {
+  margin: 0 15px;
   padding: 12px 25px;
   background: #28a745;
   color: white;
@@ -51,7 +66,8 @@
   transition: background 0.3s;
 }
 
-.btn:hover {
+.btn:hover,
+.btnfield:hover {
   background: #218838;
 }
 
@@ -78,8 +94,9 @@
   background: white;
   padding: 25px;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
+  margin: 15px;
 }
 
 .card:hover {
@@ -96,6 +113,7 @@
   font-size: 1rem;
   color: #555;
 }
+
 .hero {
   position: relative;
   text-align: center;
@@ -115,6 +133,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
 /* Google Font */
 body {
   font-family: 'Poppins', sans-serif;
@@ -135,12 +154,12 @@ body {
 
 .navbar h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: 26px;
 }
 
 .navbar nav a {
   color: white;
-  margin-left: 20px;
+  margin: 0 10px;
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s;
@@ -252,3 +271,104 @@ footer {
   }
 }
 
+.grid .card div div {
+  gap: 1vw;
+}
+
+/* Fix overflowing & spacing for buttons in field/dashboard cards */
+.grid .card .btnfield {
+  width: 100%;
+  /* use full width of card */
+  max-width: 100%;
+  padding: 12px 0;
+  display: block;
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
+  font-size: 0.9rem;
+  margin-top: 15px;
+  background: #28a745;
+  color: white;
+  border-radius: 6px;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+@media (max-width: 600px) {
+  .grid .card .btn {
+    width: 48%;
+    /* two buttons can sit side by side */
+    display: inline-block;
+    margin: 4px 1%;
+    /* tighter spacing */
+  }
+
+  .grid .card .btnfield {
+    font-size: 0.8rem;
+    width: 100%;
+    /* keep form buttons full width */
+  }
+}
+
+.dashboard-container h2 {
+  margin: 13px;
+}
+
+.advisory-container h2 {
+  margin: 13px;
+}
+
+@media(min-width:768px) {
+  .together {
+    display: flex;
+    margin-bottom: 14px;
+    flex-wrap: nowrap;
+  }
+
+  .together .btn {
+    flex: 1;
+    width: auto;
+    text-align: center;
+  }
+
+  #deletered {
+    width: 15vw;
+    position: absolute;
+    top: 10px;
+    right: 5vw;
+  }
+}
+
+#toggleDeleteBtn {
+
+  background: rgb(200, 0, 0);
+  color: white;
+}
+
+#toggleDeleteBtn:hover {
+  background: rgb(150, 0, 0);
+}
+
+.card div div {
+  display: flex;
+  margin-top: 8px;
+}
+
+.card div div .btnfield:hover {
+  cursor: pointer;
+  background: #218838;
+}
+
+#deletered {
+  background: rgb(210, 0, 0);
+  color: white;
+}
+
+#deletered:hover {
+  cursor: pointer;
+  background: rgb(170, 0, 0);
+}
+
+#getStartedBtn {
+  width: 150px;
+}
